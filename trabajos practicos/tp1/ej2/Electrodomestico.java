@@ -65,13 +65,13 @@ public class Electrodomestico {
 
     //#2 Comprobar si el electrodoméstico es de bajo consumo (menor que 45 Kw)
     public boolean bajoConsumo(){
-        return consumo <= 45;
+        return this.consumo <= 45;
     }
 
     //#3 Calcular el balance, el mismo es el resultado de dividir el costo por el peso
     public double balance(){
-        if (peso > 0) {
-            return precio/peso;
+        if (this.peso > 0) {
+            return this.precio/this.peso;
         }
         return -1;
     }
@@ -82,11 +82,11 @@ public class Electrodomestico {
     }
 
     public String funcionalidades(){
-        return "Electrodoméstico: " + nombre + "\n" +
-            "Color: " + color + "\n" +
-            "Consumo: " + consumo + " Kw \n" +
-            "Precio: $" + precio + "\n" +
-            "Peso: " + peso + " kg \n" +
+        return "Electrodoméstico: " + this.nombre + "\n" +
+            "Color: " + this.color + "\n" +
+            "Consumo: " + this.consumo + " Kw \n" +
+            "Precio: $" + this.precio + "\n" +
+            "Peso: " + this.peso + " kg \n" +
             "¿Bajo consumo?: " + (bajoConsumo()) + "\n" +
             "Balance: " + balance() + "\n" +
             "¿Alta gama?: " + (esGamaAlta()) + "\n";
