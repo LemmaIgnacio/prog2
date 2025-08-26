@@ -53,10 +53,9 @@ public class Capitulo {
         return calificacion;
     }
 
-
     // Ingresar la calificación de un episodio. 
     //Si el valor ingresado como calificació
-    //Ingresar la calificación de un episodio. Si el valor ingresado como calificación
+    //no es correcto imprimir un mensaje por pantalla y no cambiar el valor anterior
     public void setCalificacion(double calificacion) {
         if(calificacion >= 0 && calificacion <= 5) {
             this.calificacion = calificacion;
