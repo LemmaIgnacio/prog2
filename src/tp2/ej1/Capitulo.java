@@ -3,28 +3,22 @@ public class Capitulo {
     private String descripcion;
     private boolean flag;
     private double calificacion;
-
+    private static final int CALIFICACION_POR_DEFAULT = -1;
 
     //CONSTRUCTORES
-    public Capitulo(String titulo){
-        this.titulo = titulo;
-        this.descripcion = " ";
-        this.flag = false;
-        this.calificacion = -1;
+    public Capitulo(String titulo) {
+        this(titulo, " ", false, CALIFICACION_POR_DEFAULT);  
     }
 
-    public Capitulo(String titulo, String descripcion, boolean flag, 
-                    double calificacion){
+    public Capitulo(String titulo, String descripcion) {
+        this(titulo, descripcion, false, CALIFICACION_POR_DEFAULT);  
+    }
+
+    public Capitulo(String titulo, String descripcion, boolean flag, double calificacion) {
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.flag = flag;
         this.calificacion = calificacion;
-    }
-    public Capitulo(String titulo, String descripcion){
-            this.titulo = titulo;
-            this.descripcion = descripcion;
-            this.flag = false;
-            this.calificacion = -1;
     }
 
     //GETTERS Y SETTERS
