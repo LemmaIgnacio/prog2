@@ -7,6 +7,7 @@ Las series poseen como atributos (además de los episodios correspondientes) un 
 una descripción, un creador y un género.
 Implementar en Java las clases involucradas, determinar qué clase es responsable de
 responder los siguientes servicios e implementar en Java.
+
 ● Ingresar la calificación de un episodio. Si el valor ingresado como calificación
 no es correcto imprimir un mensaje por pantalla y no cambiar el valor anterior.
 ● Obtener el total de episodios vistos de una temporada particular.

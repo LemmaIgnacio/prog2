@@ -54,7 +54,7 @@ public class Capitulo {
         if(calificacion >= 0 && calificacion <= 5) {
             this.calificacion = calificacion;
         } else {
-            System.out.println("Syntax Error");
+            System.out.println("El capitulo: "+ this.titulo + " ha insertado una calificacion incorrecta (0-5)");
         }
     }
 
