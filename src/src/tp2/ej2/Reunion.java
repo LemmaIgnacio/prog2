@@ -1,3 +1,4 @@
+package tp2.ej2;
 import java.time.LocalTime;
 import java.util.ArrayList;
 public class Reunion {
