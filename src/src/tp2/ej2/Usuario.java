@@ -1,3 +1,4 @@
+package tp2.ej2;
 public class Usuario {
     private String nombre;
     private String telefono;

@@ -1,3 +1,4 @@
+package tp2.ej2;
 import java.util.ArrayList;
 public class Agenda {
     private ArrayList <Reunion> reuniones;
