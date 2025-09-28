@@ -1,0 +1,58 @@
+package tp2.ej4;
+
+public class Usuario {
+    private String nombre;
+    private boolean esSocio;
+    private int id;
+    private String telefono;
+    private String email;
+
+    public Usuario(String nombre, boolean esSocio, int id, String telefono, String email) {
+        this.nombre = nombre;
+        this.esSocio = esSocio;
+        this.id = id;
+        this.telefono = telefono;
+        this.email = email;
+    }
+        
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public boolean isEsSocio() {
+        return esSocio;
+    }
+
+    public void setEsSocio(boolean esSocio) {
+        this.esSocio = esSocio;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+}
