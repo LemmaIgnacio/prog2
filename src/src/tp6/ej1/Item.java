@@ -1,4 +1,4 @@
-package tp6;
+package tp6.ej1;
 
 public abstract class Item {
     protected String fechaVencimiento;

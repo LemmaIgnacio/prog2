@@ -1,4 +1,4 @@
-package tp6;
+package tp6.ej1;
 
 public class Pelicula extends Item{
     private String infoFilmografica;

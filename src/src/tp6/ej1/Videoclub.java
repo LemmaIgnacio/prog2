@@ -1,4 +1,4 @@
-package tp6;
+package tp6.ej1;
 
 import java.util.ArrayList;
 

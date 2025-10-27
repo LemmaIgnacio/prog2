@@ -1,4 +1,4 @@
-package tp6;
+package tp6.ej1;
 
 public class Main {
     public static void main(String[] args) {
