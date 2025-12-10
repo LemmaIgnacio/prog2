@@ -1013,3 +1013,615 @@ ElementoFS (abstracta)
 
 ---
 
+# 📘 **Búsquedas en Sistema de Archivos**   
+
+---
+
+## 🎯 **Problema: Búsquedas flexibles**
+
+El sistema de archivos ahora necesita **buscar archivos** que cumplan ciertas condiciones:
+
+* Por nombre
+* Por tamaño
+* Por fecha de creación
+* Por extensión
+* Combinaciones de condiciones (AND, OR, NOT)
+
+---
+
+## 🔍 **Nuevo requerimiento**
+
+Agregar al sistema:
+
+```java
+public ArrayList<Archivo> buscar(Condicion condicion);
+```
+
+Este método debe:
+* Recorrer toda la estructura
+* Evaluar cada archivo contra la condición
+* Devolver solo los archivos que cumplan
+
+---
+
+## 🧩 **Patrón aplicado: Strategy + Composite**
+
+### Estrategia de búsqueda
+
+En lugar de hardcodear las condiciones, se crea una **interfaz Condicion**:
+
+```java
+public interface Condicion {
+    boolean cumple(Archivo archivo);
+}
+```
+
+Esto permite:
+✅ Agregar nuevas condiciones sin modificar el código existente  
+✅ Combinar condiciones dinámicamente  
+✅ Reutilizar condiciones en distintos contextos
+
+---
+
+## 📦 **Implementación en ElementoSA**
+
+```java
+public abstract class ElementoSA {
+    private String nombre;
+    private LocalDate fechaCreacion;
+    
+    // Constructor y getters/setters...
+    
+    public abstract double getTamanio();
+    public abstract int cantElementos();
+    public abstract ArrayList<Archivo> buscar(Condicion condicion);
+    
+    @Override
+    public boolean equals(Object o) {
+        try {
+            ElementoSA otroElemento = (ElementoSA) o;
+            return otroElemento.getNombre().equals(this.getNombre());
+        } catch (ClassCastException e) {
+            return false;
+        }
+    }
+}
+```
+
+**Nota importante:** El `equals()` compara por **nombre**, no por referencia.
+
+---
+
+## 📄 **Búsqueda en Archivo**
+
+```java
+public class Archivo extends ElementoSA {
+    private double tamanio;
+    
+    @Override
+    public ArrayList<Archivo> buscar(Condicion condicion) {
+        ArrayList<Archivo> resultado = new ArrayList<>();
+        if (condicion.cumple(this))
+            resultado.add(this);
+        return resultado;
+    }
+}
+```
+
+**Lógica:**
+* Si el archivo cumple la condición → se agrega al resultado
+* Si no cumple → retorna lista vacía
+
+---
+
+## 📁 **Búsqueda en Directorio**
+
+```java
+public class Directorio extends ElementoSA {
+    private ArrayList<ElementoSA> elementos;
+    
+    @Override
+    public ArrayList<Archivo> buscar(Condicion condicion) {
+        ArrayList<Archivo> resultado = new ArrayList<>();
+        
+        for (ElementoSA elemento : elementos) {
+            ArrayList<Archivo> resultadoParcial = elemento.buscar(condicion);
+            for (Archivo archivoQueCumple : resultadoParcial) {
+                resultado.add(archivoQueCumple);
+            }
+        }
+        return resultado;
+    }
+}
+```
+
+**Lógica recursiva:**
+1. Itera sobre cada elemento contenido
+2. Pide a cada elemento que busque (delegación)
+3. Acumula todos los resultados parciales
+4. Retorna el resultado completo
+
+---
+
+## 🗜️ **Búsqueda en Comprimido**
+
+```java
+public class Comprimido extends Directorio {
+    private double tasaCompresion;
+    
+    @Override
+    public double getTamanio() {
+        return super.getTamanio() * tasaCompresion;
+    }
+}
+```
+
+**Ventaja de heredar de Directorio:**
+* No necesita redefinir `buscar()`
+* Hereda el comportamiento de búsqueda recursiva
+* Solo modifica el cálculo de tamaño
+
+---
+
+## 🔗 **Búsqueda en AccesoDirecto**
+
+```java
+public class AccesoDirecto extends ElementoSA {
+    private static double tamanio = 1.0;
+    private ElementoSA loQueApunta;
+    private static final String PREFIJO = "Acceso directo a ";
+    
+    public AccesoDirecto(ElementoSA loQueApunta) {
+        super(PREFIJO + loQueApunta.getNombre());
+        this.loQueApunta = loQueApunta;
+    }
+    
+    @Override
+    public ArrayList<Archivo> buscar(Condicion condicion) {
+        return new ArrayList<>(); // Lista vacía
+    }
+}
+```
+
+**Decisión de diseño:**
+* Los accesos directos **NO** participan en búsquedas
+* Retorna lista vacía
+* Evita duplicados (el elemento real ya fue evaluado)
+
+---
+
+## 🎨 **Ejemplos de Condiciones**
+
+### Condición por nombre:
+
+```java
+public class CondicionNombre implements Condicion {
+    private String nombre;
+    
+    public CondicionNombre(String nombre) {
+        this.nombre = nombre;
+    }
+    
+    @Override
+    public boolean cumple(Archivo archivo) {
+        return archivo.getNombre().contains(nombre);
+    }
+}
+```
+
+### Condición por tamaño:
+
+```java
+public class CondicionTamanioMayor implements Condicion {
+    private double tamanioMinimo;
+    
+    public CondicionTamanioMayor(double tamanio) {
+        this.tamanioMinimo = tamanio;
+    }
+    
+    @Override
+    public boolean cumple(Archivo archivo) {
+        return archivo.getTamanio() > tamanioMinimo;
+    }
+}
+```
+
+### Condición por extensión:
+
+```java
+public class CondicionExtension implements Condicion {
+    private String extension;
+    
+    public CondicionExtension(String extension) {
+        this.extension = extension;
+    }
+    
+    @Override
+    public boolean cumple(Archivo archivo) {
+        return archivo.getNombre().endsWith(extension);
+    }
+}
+```
+
+---
+
+## 🔧 **Condiciones Compuestas**
+
+### AND (todas deben cumplirse):
+
+```java
+public class CondicionAND implements Condicion {
+    private Condicion c1;
+    private Condicion c2;
+    
+    public CondicionAND(Condicion c1, Condicion c2) {
+        this.c1 = c1;
+        this.c2 = c2;
+    }
+    
+    @Override
+    public boolean cumple(Archivo archivo) {
+        return c1.cumple(archivo) && c2.cumple(archivo);
+    }
+}
+```
+
+### OR (al menos una debe cumplirse):
+
+```java
+public class CondicionOR implements Condicion {
+    private Condicion c1;
+    private Condicion c2;
+    
+    @Override
+    public boolean cumple(Archivo archivo) {
+        return c1.cumple(archivo) || c2.cumple(archivo);
+    }
+}
+```
+
+### NOT (negación):
+
+```java
+public class CondicionNOT implements Condicion {
+    private Condicion condicion;
+    
+    public CondicionNOT(Condicion condicion) {
+        this.condicion = condicion;
+    }
+    
+    @Override
+    public boolean cumple(Archivo archivo) {
+        return !condicion.cumple(archivo);
+    }
+}
+```
+
+---
+
+**Estructura creada:**
+
+```
+//
+├── TUDAI/
+│   ├── calendario (10KB)
+│   ├── 1er año/
+│   │   └── Prog2/
+│   │       ├── parcial.doc (100KB)
+│   │       ├── recu.pdf (200KB)
+│   │       └── prefi.txt (300KB)
+│   └── 2do año/
+├── Fotos/
+│   ├── Selfies.zip (compresión 50%)
+│   │   ├── selfie.jpg (25KB)
+│   │   ├── rindiendo el parcial.jpg (25KB)
+│   │   ├── cara de recu.gif (25KB)
+│   │   └── firulais.jpg (25KB)
+│   └── Paisajes/
+├── Pacman/
+└── Acceso directo a prefi.txt (1KB)
+```
+
+**Tamaño real de Selfies.zip:** (25 + 25 + 25 + 25) × 0.5 = **50KB**
+
+---
+
+## 🏗️ **Diagrama de Clases actualizado**
+
+```
+ElementoSA (abstracta)
+├── nombre: String
+├── fechaCreacion: LocalDate
+├── getTamanio(): double
+├── cantElementos(): int
+└── buscar(Condicion): ArrayList<Archivo>
+
+    ↑ extienden
+    │
+    ├── Archivo
+    │   └── tamanio: double
+    │
+    ├── Directorio
+    │   └── elementos: List<ElementoSA>
+    │
+    ├── Comprimido (extiende Directorio)
+    │   └── tasaCompresion: double
+    │
+    └── AccDirecto
+        └── loQueApunta: ElementoSA
+
+
+Condicion (interface)      ←─── usa ───┐
+└── cumple(Archivo): boolean           │
+                                       │
+    ↑ implementan                      │
+    │                                  │
+    ├── CondicionNombre                │
+    ├── CondicionTamanio               │
+    ├── CondicionExtension             │
+    ├── CondicionAND ──────────────────┘
+    ├── CondicionOR
+    └── CondicionNOT
+```
+
+---
+
+## 🎯 **Patrones de Diseño aplicados**
+
+| Patrón | Aplicación |
+|--------|-----------|
+| **Composite** | Estructura recursiva de archivos y directorios |
+| **Strategy** | Encapsular algoritmos de búsqueda en condiciones intercambiables |
+| **Template Method** | `buscar()` define el esqueleto, cada clase lo implementa |
+| **Delegation** | Directorio delega búsqueda a sus elementos |
+
+---
+
+## 💡 **Conceptos clave**
+
+### ✅ Ventajas del diseño con Condiciones:
+
+1. **Open/Closed Principle**: Abierto a extensión (nuevas condiciones), cerrado a modificación
+2. **Composición de condiciones**: AND, OR, NOT permiten búsquedas complejas
+3. **Reusabilidad**: Las condiciones se pueden reutilizar
+4. **Testabilidad**: Cada condición se puede probar independientemente
+
+### ✅ Recursión en Composite:
+
+* Cada `Directorio` delega a sus elementos
+* Los `Archivo` son el caso base (leaf)
+* El resultado se acumula en cada nivel
+
+### ✅ Decisiones de diseño:
+
+* `AccesoDirecto` no busca en su destino (evita duplicados)
+* `Comprimido` hereda de `Directorio` (reutiliza comportamiento)
+* `equals()` compara por nombre (no por referencia)
+
+---
+
+---
+
+# 📘 **(Parte 2) Evolución del Sistema de Búsquedas**
+
+---
+
+## 🔄 **Cambio fundamental en la búsqueda**
+
+### ❌ Versión anterior (sistemaArchivosSlides):
+```java
+public abstract ArrayList<Archivo> buscar(Condicion condicion);
+```
+* Solo retornaba **Archivos**
+* Los directorios no podían ser resultado de búsqueda
+
+### ✅ Versión mejorada (sistemaArchivosTP9):
+```java
+public abstract ArrayList<ElementoSA> buscar(Condicion condicion);
+```
+* Retorna **cualquier ElementoSA** (Archivo, Directorio, Comprimido, AccDirecto)
+* Permite buscar carpetas, comprimidos, etc.
+
+---
+
+## 🧩 **Implementación mejorada en ElementoSA**
+
+```java
+public ArrayList<ElementoSA> buscar(Condicion condicion) {
+    ArrayList<ElementoSA> resultado = new ArrayList<>();
+    if (condicion.cumple(this))
+        resultado.add(this);
+    return resultado;
+}
+```
+
+**Cambio clave:**
+* Ahora está **implementado en la clase abstracta** (no es abstracto)
+* Comportamiento por defecto: evaluarse a sí mismo
+* Las subclases pueden sobrescribirlo si necesitan comportamiento especial
+
+---
+
+## 📁 **Búsqueda en Directorio - Template Method**
+
+```java
+public class Directorio extends ElementoSA {
+    protected ArrayList<ElementoSA> elementos;
+    
+    @Override
+    public ArrayList<ElementoSA> buscar(Condicion condicion) {
+        // 1. Primero me evalúo yo mismo (llamada a super)
+        ArrayList<ElementoSA> resultado = super.buscar(condicion);
+        
+        // 2. Luego pregunto a mis hijos
+        for (ElementoSA elemento : elementos) {
+            resultado.addAll(elemento.buscar(condicion));
+        }
+        
+        return resultado;
+    }
+}
+```
+
+**Patrón Template Method aplicado:**
+1. **super.buscar(condicion)** → evalúa si el directorio mismo cumple
+2. Luego itera sobre sus elementos
+3. **addAll()** en lugar de agregar uno por uno
+
+---
+
+## 🗜️ **Comprimido - Comportamiento especial**
+
+```java
+public class Comprimido extends Directorio {
+    private double tasaCompresion;
+    
+    @Override
+    public ArrayList<ElementoSA> buscar(Condicion condicion) {
+        ArrayList<ElementoSA> resultado = new ArrayList<>();
+        ArrayList<ElementoSA> resultadoParcial = super.buscar(condicion);
+        
+        if (!resultadoParcial.isEmpty()) {
+            resultado.add(this); // Solo agrega el comprimido
+        }
+        
+        return resultado;
+    }
+}
+```
+
+**Lógica especial:**
+* Si **algún elemento interno** cumple la condición
+* Retorna **el comprimido completo**, no sus elementos individuales
+* **No expone su contenido** en los resultados
+
+**¿Por qué?**
+* Los archivos dentro del `.zip` no son directamente accesibles
+* Solo interesa saber que el comprimido contiene algo relevante
+
+---
+
+## 📄 **Archivo - Simplificación**
+
+```java
+public class Archivo extends ElementoSA {
+    private double tamanio;
+    
+    // Ya NO sobrescribe buscar()
+    // Usa el comportamiento por defecto de ElementoSA
+}
+```
+
+**Cambio:**
+* Antes tenía su propia implementación
+* Ahora **hereda** el comportamiento de `ElementoSA`
+* Código más limpio y menos redundancia
+
+---
+
+## 🔗 **AccesoDirecto - Sin búsqueda**
+
+```java
+public class AccesoDirecto extends ElementoSA {
+    private static double tamanio = 1.0;
+    private ElementoSA loQueApunta;
+    
+    // NO sobrescribe buscar()
+    // Usa el comportamiento por defecto
+}
+```
+
+**Comportamiento:**
+* Se evalúa a sí mismo (por defecto)
+* **NO** delega al elemento que apunta
+* Evita duplicados en resultados
+
+---
+
+## 🎯 **Comparación de enfoques**
+
+### Búsqueda en Directorio:
+
+| Aspecto | Versión Slides | Versión TP9 |
+|---------|----------------|-------------|
+| Retorno | `ArrayList<Archivo>` | `ArrayList<ElementoSA>` |
+| Auto-evaluación | ❌ No | ✅ Sí (`super.buscar()`) |
+| Método en padre | Abstracto | Implementado |
+| Agregado | Loop con `add()` | `addAll()` |
+
+### Búsqueda en Comprimido:
+
+| Aspecto | Versión Slides | Versión TP9 |
+|---------|----------------|-------------|
+| Sobrescribe | ❌ No | ✅ Sí |
+| Retorna | Contenido interno | El comprimido mismo |
+| Lógica | Hereda de Directorio | Comportamiento especial |
+
+---
+
+## 💡 **Ventajas del nuevo diseño**
+
+### ✅ Menos código duplicado:
+* `Archivo` ya no necesita implementar `buscar()`
+* Reutiliza el comportamiento de `ElementoSA`
+
+### ✅ Template Method:
+* `ElementoSA` define comportamiento base
+* `Directorio` lo extiende agregando búsqueda recursiva
+* `Comprimido` lo especializa con lógica propia
+
+### ✅ Encapsulación en Comprimidos:
+* El usuario no ve los archivos internos del `.zip`
+* Solo sabe que el comprimido contiene algo relevante
+
+---
+
+## 🏗️ **Diagrama de flujo de búsqueda**
+
+```
+ElementoSA.buscar(condicion)
+    │
+    ├─ if cumple(this) → add(this)
+    └─ return resultado
+
+         ↓ override en Directorio
+
+Directorio.buscar(condicion)
+    │
+    ├─ resultado = super.buscar(condicion)  ← Evalúa el directorio
+    ├─ for elemento in elementos:
+    │      resultado.addAll(elemento.buscar(condicion))  ← Recursión
+    └─ return resultado
+
+         ↓ override en Comprimido
+
+Comprimido.buscar(condicion)
+    │
+    ├─ resultadoParcial = super.buscar(condicion)
+    ├─ if !resultadoParcial.isEmpty():
+    │      resultado.add(this)  ← Solo agrega el comprimido
+    └─ return resultado
+```
+---
+
+## 🎯 **Conceptos clave reforzados**
+
+| Concepto | Aplicación |
+|----------|-----------|
+| **Template Method** | `ElementoSA` define base, subclases especializan |
+| **DRY (Don't Repeat Yourself)** | Código común sube a `ElementoSA` |
+| **Open/Closed** | Fácil agregar nuevas condiciones sin tocar búsqueda |
+| **Polimorfismo** | Retorno `ArrayList<ElementoSA>` acepta cualquier tipo |
+| **Encapsulación** | Comprimido oculta su estructura interna |
+
+---
+
+## 🚀 **Mejoras implementadas**
+
+✅ **Generalización:** De `Archivo` a `ElementoSA`  
+✅ **Reutilización:** Comportamiento por defecto en clase abstracta  
+✅ **Especialización:** Comprimido retorna solo a sí mismo  
+✅ **Claridad:** `addAll()` es más expresivo que loop con `add()`  
+✅ **Extensibilidad:** Fácil agregar nuevos tipos de elementos
+
+---
