@@ -511,3 +511,258 @@ public static final int MAYOR_EDAD = 23;
 
 ---
 
+# 📘 **Clase 7 — 11/09 — Modelado de Objetos: Cooperativa de Cereales**
+
+---
+
+# 🌱 **Problema: Cooperativa de Cereales**
+
+Una cooperativa necesita un sistema que permita:
+
+1. Determinar **qué cereales se pueden sembrar en un lote**.
+2. Determinar **qué lotes sirven para un cereal dado**.
+3. Indicar si un **lote es común o especial**.
+
+---
+
+# 🌾 **Tipos de Cereales**
+
+La consigna menciona:
+
+* Granos de cosecha gruesa (maíz, girasol, …)
+* Granos de cosecha fina (trigo, avena, …)
+* Pasturas (alfalfa, trébol, …)
+
+**Pregunta clave:**
+¿Esto implica **clases distintas**?
+
+✔ **Respuesta:** NO.
+Son **instancias** de una misma clase `Cereal`.
+
+---
+
+# 🧩 **EXCEPCIÓN: Pastura**
+
+La **pastura sí cambia el comportamiento**:
+
+* Su método `apto(Lote unLote)` exige:
+
+  * que el lote tenga los minerales necesarios
+  * **y** que su superficie sea > 50
+
+Por lo tanto:
+
+✔ `Pastura` debe ser una **subclase** de `Cereal`.
+
+---
+
+# 🌱 **Modelado Correcto de Cereal**
+
+Atributos típicos:
+
+* `nombre`
+* `mineralesRequeridos: List<String>`
+
+Método:
+
+```java
+public boolean apto(Lote lote);
+```
+
+Subclase `Pastura`:
+
+```java
+public boolean apto(Lote lote) {
+    return super.apto(lote) && lote.getSuperficie() > 50;
+}
+```
+
+---
+
+# 🧱 **Modelado del Lote**
+
+Los lotes contienen:
+
+* superficie
+* minerales presentes
+
+La clasificación **común/especial** NO es del lote.
+La cooperativa decide.
+
+✔ El lote **no sabe** si es “especial”.
+✔ La cooperativa lo determina según sus listas de minerales prioritarios.
+
+---
+
+# 🏢 **Cooperativa**
+
+Responsabilidades:
+
+* Saber cuáles minerales son de:
+
+  * **interés primario** (lote especial)
+  * **interés secundario** (lote común)
+* Recorrer sus lotes y cereales para responder:
+
+  * qué sembrar en cada lote
+  * qué lotes sirven para un cereal
+  * si un lote es especial
+
+---
+
+# 🧪 **Mineral**
+
+Si no tiene comportamiento propio → **no es una clase**.
+Usar `String` para los nombres es suficiente.
+
+Regla aplicada:
+✔ “Si no tiene estado ni comportamiento significativo → NO es clase.”
+
+---
+
+# 📝 **Conclusión de la Clase de Modelado**
+
+**Identificación de clases:**
+
+* `Cereal`
+* `Pastura` (subclase)
+* `Lote`
+* `Cooperativa`
+
+**Lo que NO es clase:**
+
+* “girasol, maíz, trigo” → **instancias**
+* “minerales” → **strings**
+
+Principio aplicado:
+
+> Crear clases solo cuando existe **estado y comportamiento propio** que lo justifique.
+
+---
+
+# 📘 **Clase 8 — 11/09 — Dinámico vs Estático (Cambio de Comportamiento)**
+
+
+---
+
+# 🔄 **Cambios en Tiempo de Ejecución**
+
+La clase introduce un concepto clave:
+
+> Cambiar **atributos** es dinámico.
+> Cambiar **comportamiento** normalmente es estático.
+
+Ejemplo:
+
+### ✔ Cambiar atributo directamente
+
+```java
+persona.setNombre("Carlos");
+```
+
+Todos los objetos relacionados se enteran del cambio.
+
+### ✖ Cambiar comportamiento creando un objeto nuevo
+
+```java
+procesador = new ProcesadorCPU();
+```
+
+Los objetos que tenían referencia al procesador anterior **no se enteran**.
+
+---
+
+# 🟪 **Atributo vs Comportamiento**
+
+* Atributo → se cambia dinámicamente vía setter.
+* Comportamiento → NO se cambia vía setter porque Java no permite cambiar métodos en runtime.
+
+Entonces, ¿cómo modificar comportamiento dinámicamente?
+
+---
+
+# 🛠 **Procesadores: el ejemplo central**
+
+Problema:
+
+* Primero implementamos:
+
+  * `ProcesadorPrioridad`
+  * `ProcesadorMemoria`
+  * `ProcesadorCPU`
+  * `ProcesadorLlegada`
+
+Pero:
+
+* Cambiar qué procesador se usa **requiere crear un objeto nuevo**.
+* Los objetos que usaban el procesador viejo **no se enteran del cambio**.
+
+---
+
+# 🎯 **Objetivo real**
+
+Cambiar **cómo se ordenan las tareas** en tiempo de ejecución, sin reconstruir el procesador.
+
+---
+
+# 🧩 **Solución: Separar responsabilidades**
+
+Identificar qué cambia:
+
+* No cambia el procesador.
+* Cambia **la forma de almacenar/ordenar tareas**.
+
+Entonces:
+
+✔ Aparece la clase **ColaTareas** (strategy / composición).
+✔ El procesador **posee** una cola.
+✔ El comportamiento cambia reemplazando la cola, no el procesador.
+
+---
+
+# 🏗 **Diseño Final**
+
+```
+Procesador
+   - ColaTareas cola
+   - ejecutarTarea()
+
+ColaTareas (interfaz o abstracta)
+   - addTarea()
+   - compare()
+
+Subclases de ColaTareas:
+   - ColaTareasPrioridad
+   - ColaTareasCPU
+   - ColaTareasMemoria
+   - ColaTareasFIFO (Llegada)
+```
+
+El procesador ahora delega:
+
+```java
+cola.addTarea(tarea);
+```
+
+Para cambiar la política de ordenamiento:
+
+```java
+procesador.setCola(new ColaTareasCPU());
+```
+
+✔ Sin crear un procesador nuevo.
+✔ Todos los objetos relacionados siguen usando el mismo procesador.
+✔ Comportamiento dinámico mediante composición.
+
+---
+
+# 🔍 **Concepto clave de la clase**
+
+> Para cambiar un comportamiento en runtime se debe **desacoplar** ese comportamiento en un objeto aparte, y reemplazarlo dinámicamente.
+
+Patrón asociado:
+✔ **Strategy Pattern**
+
+---
+
+
