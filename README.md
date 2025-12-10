@@ -765,4 +765,251 @@ Patrón asociado:
 
 ---
 
+# 📘 **Sistema de Archivos (Patrón Composite)**
+
+---
+
+## 🎯 **Problema a resolver**
+
+Un Sistema de Archivos debe organizar y manipular:
+
+* **Archivos**: tienen nombre, fecha de creación y tamaño.
+* **Directorios**: tienen nombre, fecha de creación y contienen archivos y subdirectorios.
+
+**Requerimientos:**
+
+* Calcular el **tamaño total** de un directorio.
+* Contar la **cantidad de elementos** que posee un directorio.
+
+---
+
+## 🗂️ **Versión 1.0 — Base**
+
+### Estructura:
+
+```
+\
+├── TUDAI/
+│   ├── Prog2/
+│   │   ├── Parcial.doc
+│   │   ├── Recu.pdf
+│   │   └── Prefi.txt
+│   └── Fotos/
+│       ├── 1er año/
+│       ├── 2do año/
+│       ├── Selfies/
+│       └── Paisajes/
+└── Pacman
+```
+
+### Servicios necesarios:
+
+* `getTamanio()` → devuelve el tamaño del elemento
+* `getCantidadElementos()` → cuenta elementos contenidos
+
+---
+
+## 🧩 **Modelado Orientado a Objetos v1.0**
+
+```java
+public abstract class ElementoFS {
+    protected String nombre;
+    protected LocalDate fCreacion;
+    
+    public abstract int getTamanio();
+    public abstract int getCantidadElementos();
+    
+    // getters y setters
+}
+```
+
+### Archivo:
+
+```java
+public class Archivo extends ElementoFS {
+    private int tamanio;
+    
+    public int getTamanio() {
+        return this.tamanio;
+    }
+    
+    public int getCantidadElementos() {
+        return 1; // el archivo mismo
+    }
+}
+```
+
+### Carpeta (Directorio):
+
+```java
+public class Carpeta extends ElementoFS {
+    private ArrayList<ElementoFS> elementos;
+    
+    public int getTamanio() {
+        int total = 0;
+        for (ElementoFS elem : elementos) {
+            total += elem.getTamanio();
+        }
+        return total;
+    }
+    
+    public int getCantidadElementos() {
+        int total = 0;
+        for (ElementoFS elem : elementos) {
+            total += elem.getCantidadElementos();
+        }
+        return total;
+    }
+}
+```
+
+---
+
+## 🗜️ **Versión 2.0 — Archivos Comprimidos**
+
+### Nuevo elemento: **Comprimido**
+
+* Contiene otros archivos y/o directorios.
+* Reduce su tamaño según una **tasa de compresión**.
+* Tiene nombre y fecha de creación.
+
+**Ejemplo:**
+
+```
+Paisajes/
+└── playa.zip
+    ├── listado.txt
+    └── picture.jpg
+```
+
+### Implementación:
+
+```java
+public class Comprimido extends ElementoFS {
+    private ArrayList<ElementoFS> elementos;
+    private double tasaCompresion; // ej: 0.5 = 50%
+    
+    public int getTamanio() {
+        int total = 0;
+        for (ElementoFS elem : elementos) {
+            total += elem.getTamanio();
+        }
+        return (int)(total * tasaCompresion);
+    }
+    
+    public int getCantidadElementos() {
+        int total = 0;
+        for (ElementoFS elem : elementos) {
+            total += elem.getCantidadElementos();
+        }
+        return total;
+    }
+}
+```
+
+---
+
+## 🔗 **Versión 3.0 — Accesos Directos (Links)**
+
+### Nuevo elemento: **AccesoDirecto (Link)**
+
+* Vínculo a otro archivo, directorio o incluso otro link.
+* **Tamaño fijo:** siempre 1KB.
+* Nombre por defecto: `"Acceso directo a " + nombreDestino`
+
+**Ejemplo:**
+
+```
+Prog2/
+├── Prefi.txt
+└── Acceso directo a Prefi.txt
+```
+
+### Implementación:
+
+```java
+public class AccDirecto extends ElementoFS {
+    private static final int TAMANIO_FIJO = 1; // 1KB
+    private ElementoFS destino;
+    
+    public AccDirecto(ElementoFS destino) {
+        this.destino = destino;
+        this.nombre = "Acceso directo a " + destino.getNombre();
+    }
+    
+    public int getTamanio() {
+        return TAMANIO_FIJO; // siempre 1KB
+    }
+    
+    public int getCantidadElementos() {
+        return destino.getCantidadElementos();
+    }
+}
+```
+
+---
+
+## 🏗️ **Diagrama de Clases Final**
+
+```
+ElementoFS (abstracta)
+├── nombre: String
+├── fCreacion: LocalDate
+├── getTamanio(): int
+└── getCantidadElementos(): int
+
+    ↑ extienden
+    │
+    ├── Archivo
+    │   └── tamanio: int
+    │
+    ├── Carpeta
+    │   └── elementos: List<ElementoFS>
+    │
+    ├── Comprimido
+    │   ├── elementos: List<ElementoFS>
+    │   └── tasaCompresion: double
+    │
+    └── AccDirecto
+        └── destino: ElementoFS
+```
+
+---
+
+## 🎯 **Patrón aplicado: COMPOSITE**
+
+### Características:
+
+* **Composición recursiva**: las carpetas contienen elementos, que pueden ser carpetas.
+* **Tratamiento uniforme**: todos los elementos implementan los mismos métodos.
+* **Polimorfismo**: el código cliente no necesita saber si está tratando con un archivo, carpeta o comprimido.
+
+### Ventajas:
+
+✅ Fácil agregar nuevos tipos de elementos (extensibilidad).  
+✅ Simplifica el código cliente.  
+✅ Operaciones recursivas naturales.
+
+---
+
+## 📌 **Conceptos clave**
+
+| Concepto | Aplicación |
+|----------|-----------|
+| **Herencia** | Todos heredan de `ElementoFS` |
+| **Polimorfismo** | `ArrayList<ElementoFS>` puede contener cualquier tipo |
+| **Recursión** | Carpetas calculan tamaño sumando sus elementos |
+| **Composición** | Carpetas y comprimidos contienen otros elementos |
+| **Constantes** | `TAMANIO_FIJO` en AccDirecto |
+
+---
+
+## 💡 **Lecciones de diseño**
+
+1. **Abstracción**: `ElementoFS` define el contrato común.
+2. **Delegación**: Carpetas y comprimidos delegan el cálculo a sus elementos.
+3. **Responsabilidad única**: Cada clase sabe cómo calcular su propio tamaño.
+4. **Patrón Composite**: Permite tratar objetos individuales y composiciones de manera uniforme.
+
+---
 
