@@ -1625,3 +1625,254 @@ Comprimido.buscar(condicion)
 ✅ **Extensibilidad:** Fácil agregar nuevos tipos de elementos
 
 ---
+
+# 📘 **Copia y Copia Condicional (Patrón Prototype)**
+
+---
+
+## 🎯 **Nuevas funcionalidades**
+
+Esta versión agrega:
+
+1. **Copia completa** de elementos (Patrón Prototype)
+2. **Copia condicional** (solo elementos que cumplen criterios)
+
+
+---
+
+## 📋 **Patrón Prototype - Copia completa**
+
+### Método abstracto en ElementoSA:
+
+```java
+public abstract ElementoSA copiar();
+```
+
+Cada clase debe saber cómo copiarse a sí misma.
+
+---
+
+### Copia de Archivo:
+
+```java
+@Override
+public ElementoSA copiar() {
+    Archivo copia = new Archivo(this.getNombre(), this.getTamanio());
+    return copia;
+}
+```
+
+**Copia superficial:**
+* Crea un nuevo `Archivo` con los mismos valores
+* No comparte referencias
+
+---
+
+### Copia de Directorio:
+
+```java
+@Override
+public ElementoSA copiar() {
+    Directorio copia = this.crearElemento();
+    for (ElementoSA elemento : this.elementos) {
+        ElementoSA copiaElemento = elemento.copiar();
+        copia.addElemento(copiaElemento);
+    }
+    return copia;
+}
+
+public Directorio crearElemento() {
+    return new Directorio(this.getNombre());
+}
+```
+
+**Copia profunda recursiva:**
+1. Crea un directorio vacío
+2. Itera sobre cada elemento
+3. Llama a `copiar()` de cada hijo (polimorfismo)
+4. Agrega la copia al nuevo directorio
+
+---
+
+### Factory Method en Comprimido:
+
+```java
+@Override
+public Directorio crearElemento() {
+    return new Comprimido(this.getNombre(), this.getTasaCompresion());
+}
+```
+
+**Patrón Factory Method:**
+* `Directorio` usa `crearElemento()` para instanciarse
+* `Comprimido` lo sobrescribe para crear un `Comprimido`
+* Permite reutilizar el código de `copiar()` del padre
+
+---
+
+### Copia de AccesoDirecto:
+
+```java
+@Override
+public ElementoSA copiar() {
+    AccesoDirecto copia = new AccesoDirecto(this.getLoQueApunta());
+    return copia;
+}
+```
+
+**Decisión:** 
+* La copia apunta **al mismo elemento** (copia superficial de la referencia)
+* No copia el elemento destino
+
+---
+
+## 🔍 **Copia condicional**
+
+### Método abstracto:
+
+```java
+public abstract ElementoSA copiar(Condicion condicion);
+```
+
+Copia solo los elementos que cumplen la condición.
+
+---
+
+### Copia condicional en Archivo:
+
+```java
+@Override
+public ElementoSA copiar(Condicion condicion) {
+    if (condicion.cumple(this)) {
+        return this.copiar();
+    }
+    else return null; // Acordarse de atajar esto!
+}
+```
+
+**Lógica:**
+* Si cumple → devuelve copia
+* Si no cumple → devuelve `null`
+
+---
+
+### Copia condicional en Directorio:
+
+```java
+@Override
+public ElementoSA copiar(Condicion condicion) {
+    Directorio copia = this.crearElemento();
+    for (ElementoSA elemento : this.elementos) {
+        ElementoSA copiaElemento = elemento.copiar(condicion);
+        if (copiaElemento != null) { // Acá atajos los nulos
+            copia.addElemento(copiaElemento);
+        } // else no hago nada, no lo agrego
+    }
+    if (copia.tieneElementos())
+        return copia;
+    else
+        return null; // Ojo, ¿quién lo ataja?
+}
+
+public boolean tieneElementos() {
+    return !this.elementos.isEmpty();
+}
+```
+
+**Lógica compleja:**
+1. Crea directorio vacío
+2. Itera sobre hijos pidiendo copias condicionales
+3. **Filtra nulls** → solo agrega copias válidas
+4. Si el directorio queda vacío → retorna `null`
+5. Si tiene al menos un elemento → retorna la copia
+
+**Problema del diseño:**
+* Los `null` se propagan hacia arriba
+* Cada nivel debe atajarlos
+
+---
+
+### Copia condicional en AccesoDirecto:
+
+```java
+@Override
+public ElementoSA copiar(Condicion condicion) {
+    return null; // Hacerlo!!!
+}
+```
+---
+
+## 🎯 **Patrones de diseño aplicados**
+
+| Patrón | Aplicación |
+|--------|-----------|
+| **Prototype** | `copiar()` permite clonar objetos sin conocer su tipo exacto |
+| **Factory Method** | `crearElemento()` permite a subclases definir qué crear |
+| **Composite** | Recursión natural en copia e impresión |
+
+---
+
+## 🧩 **Diagrama de flujo - Copia condicional**
+
+```
+Directorio.copiar(condicion)
+    │
+    ├─ copia = crearElemento()
+    │
+    ├─ for elemento in elementos:
+    │      copiaElemento = elemento.copiar(condicion)
+    │      if copiaElemento != null:
+    │          copia.addElemento(copiaElemento)
+    │
+    ├─ if copia.tieneElementos():
+    │      return copia
+    └─ else:
+           return null
+
+                ↓ recursión
+
+Archivo.copiar(condicion)
+    │
+    ├─ if condicion.cumple(this):
+    │      return copiar()
+    └─ else:
+           return null
+```
+
+---
+
+## 💡 **Conceptos clave**
+
+### ✅ Copia profunda vs superficial:
+
+| Tipo | ElementoSA | Implementación |
+|------|-----------|----------------|
+| **Profunda** | Directorio, Comprimido | Recursiva, copia todos los hijos |
+| **Superficial** | Archivo | Solo copia valores primitivos |
+| **Híbrida** | AccesoDirecto | Copia objeto pero mantiene referencia al destino |
+
+### ✅ Manejo de nulls:
+
+* `copiar(condicion)` puede retornar `null`
+* Los directorios **filtran** los nulls al agregar
+* Un directorio vacío también retorna `null`
+* La estructura se "poda" automáticamente
+
+### ✅ Factory Method:
+
+* `crearElemento()` abstrae la creación
+* Permite que `Comprimido` reutilice el `copiar()` de `Directorio`
+* Principio Open/Closed aplicado
+
+---
+
+## 🚀 **Ventajas del diseño**
+
+✅ **Reutilización:** `Comprimido` hereda `copiar()` completo  
+✅ **Polimorfismo:** No se necesita `instanceof` para copiar  
+✅ **Extensibilidad:** Agregar nuevos elementos es simple  
+✅ **Claridad:** Cada clase sabe cómo copiarse  
+✅ **Composición:** La recursión es natural y elegante
+
+---
+
