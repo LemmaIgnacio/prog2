@@ -1874,5 +1874,642 @@ Archivo.copiar(condicion)
 ✅ **Claridad:** Cada clase sabe cómo copiarse  
 ✅ **Composición:** La recursión es natural y elegante
 
+
 ---
 
+# 📘 **Clase — Interfaces en Java**
+
+---
+
+## 🎯 **¿Qué es una Interface?**
+
+Una **interface** lleva un paso más allá el concepto de **clase abstracta**:
+
+* Define un **protocolo de comportamiento**
+* Proporciona un formato común para implementarlo en clases
+* Es independiente de dónde será utilizado
+
+---
+
+## ✅ **Ventajas de las Interfaces**
+
+### Desacople entre comportamiento y clase:
+
+* Una clase puede tener múltiples comportamientos (implementar varias interfaces)
+* Distintas clases pueden compartir el mismo comportamiento sin estar relacionadas por herencia
+
+---
+
+## 📋 **Características conceptuales**
+
+| Característica | Descripción |
+|----------------|-------------|
+| **Solo signaturas** | Declaran métodos sin implementarlos |
+| **Sin atributos** | Solo pueden tener constantes |
+| **Contrato** | Quien implementa debe cumplir todos los métodos |
+
+---
+
+## 💻 **Sintaxis básica**
+
+### Declaración:
+
+```java
+public interface MiInterface {
+    public void miMetodo();
+    public int otroMetodo(String param);
+}
+```
+
+**Reglas:**
+* Se declara con `interface` en lugar de `class`
+* Los métodos no tienen cuerpo (solo signatura)
+
+---
+
+## 🔒 **Constantes en Interfaces**
+
+Todas las variables son implícitamente `public static final`:
+
+```java
+public interface Configuracion {
+    int CANT_MAX = 100;  // implícitamente: public static final
+    String NOMBRE = "Sistema";
+}
+```
+
+**Obligatorio:**
+* Deben incluir un valor inicial
+* Son constantes, no variables
+
+---
+
+## 🔗 **Herencia de Interfaces**
+
+### Una interface puede heredar de otras interfaces:
+
+```java
+public interface MiInterface extends OtraInterface, UnaMas {
+    // métodos adicionales
+}
+```
+
+**Reglas:**
+* Una interface **solo** puede heredar de otras interfaces
+* Puede heredar de **múltiples** interfaces (herencia múltiple)
+* No puede heredar de clases
+
+---
+
+## 🏗️ **Implementación de Interfaces**
+
+### Una clase implementa una interface con `implements`:
+
+```java
+public class MiClase implements MiInterface {
+    @Override
+    public void miMetodo() {
+        // implementación obligatoria
+    }
+}
+```
+
+**Reglas:**
+* Una clase puede implementar **múltiples** interfaces
+* Debe implementar **todos** los métodos de la interface
+* Si no los implementa todos → debe ser `abstract`
+
+---
+
+## 🎭 **Uso polimórfico**
+
+Las interfaces pueden usarse como **tipos**:
+
+```java
+MiInterface objeto = new MiClase();
+objeto.miMetodo();  // polimorfismo
+```
+
+**Restricción:**
+* Solo puedes llamar métodos definidos en la interface
+* Para acceder a métodos de la clase concreta → casting
+
+```java
+ElementoComparable a1 = new Alumno("Juan", cumple, 23779);
+System.out.println(a1.esMayor(a2));  // OK
+System.out.println(((Alumno) a1).getNombre());  // Necesita casting
+```
+
+---
+
+### Solución con Interfaces:
+
+```java
+interface A {
+    int getValor();  // Solo signatura, sin implementación
+}
+
+interface B extends A {
+    int getAtributo();
+}
+
+interface C extends A {
+    int calcular();
+}
+
+class MiClase implements B, C {
+    @Override
+    public int getValor() { return 3; }  // Una sola implementación
+    
+    @Override
+    public int getAtributo() { return 5; }
+    
+    @Override
+    public int calcular() { return getValor() + 10; }
+}
+```
+
+**Ventaja:**
+* No hay ambigüedad porque las interfaces **no tienen implementación**
+* La clase concreta define una sola vez cada método
+
+---
+
+## 🧛 **Ejemplo: Sistema de Monstruos**
+
+### Interfaces:
+
+```java
+interface Monstruo {
+    void asustar();
+}
+
+interface MonstruoPeligroso extends Monstruo {
+    void destruir();
+}
+
+interface MonstruoLetal {
+    void matar();
+}
+
+interface Vampiro extends MonstruoPeligroso, MonstruoLetal {
+    void chuparSangre();
+}
+```
+
+**Jerarquía:**
+```
+Monstruo
+    └── MonstruoPeligroso
+            └── Vampiro (también extiende MonstruoLetal)
+
+MonstruoLetal
+    └── Vampiro
+```
+
+---
+
+### Implementaciones:
+
+```java
+class GodZilla implements MonstruoPeligroso {
+    @Override
+    public void asustar() {
+        System.out.println("Grrrrr");
+    }
+    
+    @Override
+    public void destruir() {
+        System.out.println("plaf!");
+    }
+}
+
+class VampiroMaléfico implements Vampiro {
+    @Override
+    public void asustar() {
+        System.out.println("buuuh!");
+    }
+    
+    @Override
+    public void destruir() {
+        System.out.println("boing!");
+    }
+    
+    @Override
+    public void matar() {
+        System.out.println("pum!");
+    }
+    
+    @Override
+    public void chuparSangre() {
+        System.out.println("ffffffhhhhh");
+    }
+}
+```
+
+---
+
+### Uso polimórfico:
+
+```java
+public class HorrorShow {
+    public void asusta(Monstruo m) {
+        m.asustar();
+    }
+    
+    public void liquida(MonstruoLetal l) {
+        l.matar();
+    }
+    
+    public void asustaMas(MonstruoPeligroso m) {
+        m.asustar();
+        m.destruir();
+    }
+    
+    public static void main(String[] args) {
+        HorrorShow show = new HorrorShow();
+        
+        MonstruoPeligroso barney = new GodZilla();
+        show.asusta(barney);      // "Grrrrr"
+        show.asustaMas(barney);   // "Grrrrr" + "plaf!"
+        show.liquida(barney);     // ❌ ERROR: GodZilla no es MonstruoLetal
+        
+        Vampiro dracula = new VampiroMaléfico();
+        show.asusta(dracula);     // "buuuh!"
+        show.asustaMas(dracula);  // "buuuh!" + "boing!"
+        show.liquida(dracula);    // "pum!"
+    }
+}
+```
+
+**Análisis:**
+* `barney` (GodZilla) solo implementa `MonstruoPeligroso`
+* No puede ser pasado a `liquida()` porque no es `MonstruoLetal`
+* `dracula` implementa `Vampiro` que extiende ambas interfaces
+* Puede ser usado en cualquier método
+
+---
+
+## 💻 **Ejercicio: Centro de Cómputos**
+
+### Problema:
+
+Un centro de cómputos gestiona:
+
+* **Computadoras**: ejecutan procesos
+* **Procesos**: esperan computadoras disponibles
+
+**Reglas:**
+* Si no hay computadoras → procesos van a cola de espera
+* Si no hay procesos → computadoras van a cola de disponibles
+* Los procesos se ordenan por **mayor requerimiento de memoria**
+* Las computadoras se ordenan por **mayor velocidad CPU**
+
+---
+
+## 🧩 **Interface ObjetoComparable**
+
+```java
+public interface ObjetoComparable {
+    boolean esMayor(ObjetoComparable otro);
+}
+```
+
+**Propósito:**
+* Definir un comportamiento común de comparación
+* Permite ordenar distintos tipos de objetos
+
+---
+
+## 🖥️ **Clase Computadora**
+
+```java
+public class Computadora extends Inventariable implements ObjetoComparable {
+    private String nombre;
+    private double velocidadCPU;
+    private Proceso procesoEnEjecucion;
+    
+    public Computadora(int inventario, String nombre, String sala, double velocidadCPU) {
+        super(inventario, sala);
+        this.nombre = nombre;
+        this.velocidadCPU = velocidadCPU;
+        this.procesoEnEjecucion = null;
+    }
+    
+    @Override
+    public boolean esMayor(ObjetoComparable otro) {
+        return this.velocidadCPU > ((Computadora) otro).getVelocidadCPU();
+    }
+    
+    public void asignoProceso(Proceso proceso) {
+        this.procesoEnEjecucion = proceso;
+    }
+    
+    public String toString() {
+        return nombre + " (" + velocidadCPU + " MHz)";
+    }
+}
+```
+
+**Análisis:**
+* Hereda de `Inventariable` (herencia)
+* Implementa `ObjetoComparable` (interface)
+* Compara por velocidad CPU
+
+---
+
+## ⚙️ **Clase Proceso**
+
+```java
+public class Proceso implements ObjetoComparable {
+    private String pid;
+    private double reqMemoria;
+    private int reqTiempo;
+    
+    public Proceso(String pid, double reqMemoria, int reqTiempo) {
+        this.pid = pid;
+        this.reqMemoria = reqMemoria;
+        this.reqTiempo = reqTiempo;
+    }
+    
+    @Override
+    public boolean esMayor(ObjetoComparable otro) {
+        return this.reqMemoria > ((Proceso) otro).getReqMemoria();
+    }
+    
+    public String toString() {
+        return pid + " (" + reqMemoria + " Mb)";
+    }
+}
+```
+
+**Análisis:**
+* Implementa `ObjetoComparable`
+* Compara por requerimiento de memoria
+* **No hereda de Inventariable** (no es parte del inventario físico)
+
+---
+
+## 📦 **Clase Inventariable**
+
+```java
+public class Inventariable {
+    private int nroInventario;
+    private String sala;
+    
+    public Inventariable(int nroInventario, String sala) {
+        this.nroInventario = nroInventario;
+        this.sala = sala;
+    }
+    
+    // getters y setters...
+}
+```
+
+**Propósito:**
+* Agrupa características comunes de dispositivos físicos
+* `Computadora` e `Impresora` heredan de esta clase
+
+---
+
+## 🖨️ **Clase Impresora**
+
+```java
+public class Impresora extends Inventariable {
+    private String marca;
+    private boolean color;
+    
+    public Impresora(int nroInventario, String sala, String marca, boolean color) {
+        super(nroInventario, sala);
+        this.marca = marca;
+        this.color = color;
+    }
+    
+    // getters y setters...
+}
+```
+
+**Análisis:**
+* Hereda de `Inventariable`
+* **NO** implementa `ObjetoComparable` (no necesita ordenarse)
+
+---
+
+## 🗂️ **Clase ColaEspera**
+
+```java
+public class ColaEspera {
+    private ArrayList<ObjetoComparable> elementos;
+    
+    public ColaEspera() {
+        this.elementos = new ArrayList<>();
+    }
+    
+    public boolean estaVacio() {
+        return elementos.isEmpty();
+    }
+    
+    public void agregarOrdenado(ObjetoComparable elementoNuevo) {
+        int i = 0;
+        while (i < elementos.size() && elementos.get(i).esMayor(elementoNuevo))
+            i++;
+        elementos.add(i, elementoNuevo);
+    }
+    
+    public Object dameSiguiente() {
+        return elementos.remove(0);
+    }
+    
+    public void imprimir() {
+        for (Object elemento : elementos) {
+            System.out.println(elemento);
+        }
+    }
+}
+```
+
+**Ventaja clave:**
+* Trabaja con `ObjetoComparable`
+* **No necesita saber** si tiene `Proceso` o `Computadora`
+* Polimorfismo puro → reutilizable
+
+---
+
+## 🏢 **Clase CentroComputos**
+
+```java
+public class CentroComputos {
+    private ColaEspera computadoras;
+    private ColaEspera procesos;
+    
+    public CentroComputos() {
+        this.computadoras = new ColaEspera();
+        this.procesos = new ColaEspera();
+    }
+    
+    public void agregarProceso(Proceso proceso) {
+        if (computadoras.estaVacio()) {
+            procesos.agregarOrdenado(proceso);
+        } else {
+            Computadora compu = (Computadora) computadoras.dameSiguiente();
+            compu.asignoProceso(proceso);
+        }
+    }
+    
+    public void agregarComputadora(Computadora computadora) {
+        if (procesos.estaVacio()) {
+            computadoras.agregarOrdenado(computadora);
+        } else {
+            computadora.asignoProceso((Proceso) procesos.dameSiguiente());
+        }
+    }
+    
+    public void imprimirProcesosEnEspera() {
+        procesos.imprimir();
+    }
+    
+    public void imprimirComputadorasLibres() {
+        computadoras.imprimir();
+    }
+}
+```
+
+**Lógica:**
+1. Si llega un proceso:
+   * Si hay computadoras libres → asignar inmediatamente
+   * Si no → agregarlo a cola de procesos (ordenado por memoria)
+
+2. Si llega una computadora:
+   * Si hay procesos esperando → asignar inmediatamente
+   * Si no → agregarla a cola de computadoras (ordenado por velocidad)
+
+---
+
+## 🎯 **Ejemplo de ejecución**
+
+```java
+CentroComputos cc = new CentroComputos();
+
+// Llegan 2 procesos (no hay computadoras)
+cc.agregarProceso(new Proceso("Proc1", 100, 10));
+cc.agregarProceso(new Proceso("Proc2", 200, 10));
+
+System.out.println("Procesos en espera:");
+cc.imprimirProcesosEnEspera();
+// Salida:
+// Proc2 (200 Mb)  ← mayor memoria primero
+// Proc1 (100 Mb)
+
+// Llega una computadora
+cc.agregarComputadora(new Computadora(1, "Comp1", "Sala 1", 200));
+// Se asigna a Proc2 (el de mayor memoria)
+
+System.out.println("Procesos en espera:");
+cc.imprimirProcesosEnEspera();
+// Salida:
+// Proc1 (100 Mb)  ← solo queda Proc1
+```
+
+---
+
+## 📊 **Diagrama de clases**
+
+```
+                    ┌───────────────────┐
+                    │ ObjetoComparable  │ (interface)
+                    │  + esMayor()      │
+                    └───────────────────┘
+                            △
+                            │ implements
+                ┌───────────┴───────────┐
+                │                       │
+        ┌───────────────┐       ┌──────────────┐
+        │  Computadora  │       │   Proceso    │
+        │  + esMayor()  │       │  + esMayor() │
+        └───────────────┘       └──────────────┘
+                △
+                │ extends
+        ┌───────────────┐
+        │ Inventariable │
+        └───────────────┘
+                △
+                │ extends
+        ┌───────────────┐
+        │   Impresora   │
+        └───────────────┘
+
+
+        ┌───────────────┐
+        │  ColaEspera   │
+        │  elementos:   │
+        │  List<ObjetoComparable>
+        └───────────────┘
+                △
+                │ usa
+        ┌───────────────────┐
+        │ CentroComputos    │
+        │  computadoras     │
+        │  procesos         │
+        └───────────────────┘
+```
+
+---
+
+## 💡 **Conceptos clave**
+
+| Concepto | Aplicación en el ejemplo |
+|----------|--------------------------|
+| **Interface** | `ObjetoComparable` define contrato de comparación |
+| **Polimorfismo** | `ColaEspera` trabaja con cualquier `ObjetoComparable` |
+| **Herencia** | `Computadora` e `Impresora` heredan de `Inventariable` |
+| **Implementación múltiple** | Una clase puede heredar **y** implementar interfaces |
+| **Desacople** | `ColaEspera` no depende de clases concretas |
+
+---
+
+## 🎯 **Ventajas de usar Interfaces**
+
+### ✅ Reutilización:
+* `ColaEspera` sirve para **cualquier** tipo comparable
+* No necesita duplicarse para `Proceso` y `Computadora`
+
+### ✅ Extensibilidad:
+* Agregar nuevos elementos comparables es fácil
+* Solo deben implementar `ObjetoComparable`
+
+### ✅ Polimorfismo:
+* El código cliente trabaja con la interface
+* No necesita conocer las clases concretas
+
+### ✅ Desacople:
+* Cambiar la implementación de `Proceso` no afecta `ColaEspera`
+* Las responsabilidades están claramente separadas
+
+---
+
+## 🔧 **Comparación: Herencia vs Interface**
+
+| Aspecto | Herencia | Interface |
+|---------|----------|-----------|
+| **Cantidad** | Solo una clase padre | Múltiples interfaces |
+| **Implementación** | Hereda código | Solo contrato |
+| **Relación** | "ES UN" (is-a) | "PUEDE HACER" (can-do) |
+| **Flexibilidad** | Acoplada a jerarquía | Desacoplada |
+| **Ejemplo** | `Computadora` IS-A `Inventariable` | `Proceso` CAN-DO `ObjetoComparable` |
+
+---
+
+## 🚀 **Cuándo usar Interfaces**
+
+✅ **Usa interfaces cuando:**
+* Varias clases no relacionadas necesitan el mismo comportamiento
+* Quieres definir un contrato sin implementación
+* Necesitas "herencia múltiple" de comportamientos
+* Quieres desacoplar el código
+
+✅ **Usa herencia cuando:**
+* Hay una relación clara "ES UN"
+* Quieres reutilizar código (implementación)
+* Hay una jerarquía natural de conceptos
+
+---
