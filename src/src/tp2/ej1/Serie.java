@@ -82,4 +82,12 @@ public class Serie {
     public boolean todosEpVistos(){
         return getTamanio() == getTamanio();
     }
+
+    public double getPromedio() {
+        int vistos = getEpisodiosVistos();
+        if (vistos == 0) {
+            return 0.0;
+        }
+        return (double) getClasificacion() / vistos;
+    }
 }
