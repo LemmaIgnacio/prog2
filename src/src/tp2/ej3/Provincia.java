@@ -1,57 +1,61 @@
 package tp2.ej3;
+
 import java.util.ArrayList;
+
 public class Provincia {
-    final static int POBLACION_MINIMA = 100000;
     private String nombre;
     private ArrayList<Ciudad> ciudades;
-
-
+    public String getNombre() {
+        return nombre;
+    }
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+    public ArrayList<Ciudad> getCiudades() {
+        return ciudades;
+    }
+    public void setCiudades(ArrayList<Ciudad> ciudades) {
+        this.ciudades = ciudades;
+    }
 
     public Provincia(String nombre, ArrayList<Ciudad> ciudades) {
         this.nombre = nombre;
         this.ciudades = ciudades;
     }
-    
-    public Provincia() {
+
+    public int getTamanio(){
+        int total = 0;
+        for (Ciudad c : ciudades) {
+            total += c.getTamanio();
+        }
+        return total;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public ArrayList<Ciudad> getCiudades() {
-        return ciudades;
-    }
-
-    public void setCiudades(ArrayList<Ciudad> ciudades) {
-        this.ciudades = ciudades;
-    }
-
-    public boolean tieneDeficit(){
+    public boolean provEnDeficit(){
         int contador = 0;
-        for (int i = 0; i < ciudades.size(); i++) {
-            if(ciudades.get(i).estaEnDeficit() && ciudades.get(i).getPoblacion() > POBLACION_MINIMA){
+        for (Ciudad c : ciudades) {
+            if(c.tieneDeficit()){
                 contador++;
             }
         }
-        return contador > (ciudades.size()/2);
+        if (contador >= getTamanio() / 2) {
+            return true;
+        }
+        return false;
     }
 
-    public String ciudadesEnDeficit(){
-        String resultado = "Ciudades en deficit: \n";
-        for (int i = 0; i < ciudades.size(); i++) {
-            if(ciudades.get(i).estaEnDeficit()){
-                resultado += ciudades.get(i).getNombre() + "\n";
-            }
+    public String mostrarCiudades() {
+        String resultado = "";
+        for (Ciudad c : ciudades) {
+            resultado += c.getNombre() + ", ";
         }
         return resultado;
     }
 
+    @Override
+    public String toString() {
+        return "Provincia [nombre=" + nombre + ", ciudades=" + mostrarCiudades() + ", provDeficit()=" + provEnDeficit() + "]";
+    }
+
     
-
-
 }
