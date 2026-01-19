@@ -1,60 +1,59 @@
 package tp2.ej2;
-import java.time.LocalTime;
+
 import java.util.ArrayList;
+
 public class Reunion {
+    private ArrayList<Asistente> participantes;
     private String lugar;
+    private String tema;
+    private int hora;
     private int duracion;
-    private LocalTime horaInicio;
-    private ArrayList<Usuario> usuarios;
-    
-    public Reunion(String lugar, int duracion, LocalTime horaInicio, ArrayList<Usuario> usuarios) {
+
+    public Reunion(String lugar, String tema, int hora, int duracion) {
         this.lugar = lugar;
+        this.tema = tema;
+        this.hora = hora;
         this.duracion = duracion;
-        this.horaInicio = horaInicio;
-        this.usuarios = usuarios;
+        this.participantes = new ArrayList<>();
     }
 
-    public Reunion() {
-        this("Lugar", 0, LocalTime.of(0,0), new ArrayList<Usuario>());
+    public void agregarParticipante(Asistente asistente) {
+        participantes.add(asistente);
+    }
+
+    public ArrayList<Asistente> getParticipantes() {
+        return participantes;
     }
 
     public String getLugar() {
         return lugar;
     }
 
-    public void setLugar(String lugar) {
-        this.lugar = lugar;
+    public String getTema() {
+        return tema;
+    }
+
+    public int getHora() {
+        return hora;
     }
 
     public int getDuracion() {
         return duracion;
     }
 
-    public void setDuracion(int duracion) {
-        this.duracion = duracion;
-    }
-
-    public LocalTime getHoraInicio() {
-        return horaInicio;
-    }
-
-    public void setHoraInicio(LocalTime horaInicio) {
-        this.horaInicio = horaInicio;
-    }
-
-    public ArrayList<Usuario> getUsuarios() {
-        return usuarios;
-    }
-
-    public void setUsuarios(ArrayList<Usuario> usuarios) {
-        this.usuarios = usuarios;
+    public int getHoraFin() {
+        return hora + duracion;
     }
 
     @Override
     public String toString() {
-        return "Reunion [lugar=" + lugar + ", duracion=" + duracion + ", horaInicio=" + horaInicio + ", usuarios="
-                + usuarios + "]";
+        String resultado = "Reunión: " + tema + "\n";
+        resultado += "Lugar: " + lugar + "\n";
+        resultado += "Hora: " + hora + ":00 a " + getHoraFin() + ":00\n";
+        resultado += "Participantes:\n";
+        for (Asistente a : participantes) {
+            resultado += "  - " + a + "\n";
+        }
+        return resultado;
     }
-
-    
 }
