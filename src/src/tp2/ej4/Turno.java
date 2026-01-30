@@ -1,47 +1,45 @@
 package tp2.ej4;
-import java.time.LocalDateTime;
+
 public class Turno {
-    private int cantHoras;
-    private int reserva;
-    private LocalDateTime fechaHora;
-    private Usuario Usuario;
+    private Cancha cancha;
+    private Usuario usuario;
+    private String fecha;
+    private int hora;
+    private int duracion;
 
-    public Turno(int cantHoras, int reserva, LocalDateTime fechaHora) {
-        this.cantHoras = cantHoras;
-        this.reserva = reserva;
-        this.fechaHora = fechaHora;
+    public Turno(Cancha cancha, Usuario usuario, String fecha, int hora, int duracion) {
+        this.cancha = cancha;
+        this.usuario = usuario;
+        this.fecha = fecha;
+        this.hora = hora;
+        this.duracion = duracion;
     }
 
-    public int getCantHoras() {
-        return cantHoras;
+    public Cancha getCancha() {
+        return cancha;
     }
 
-    public void setCantHoras(int cantHoras) {
-        this.cantHoras = cantHoras;
+    public Usuario getUsuario() {
+        return usuario;
     }
 
-    public int getReserva() {
-        return reserva;
+    public String getFecha() {
+        return fecha;
     }
 
-    public void setReserva(int reserva) {
-        this.reserva = reserva;
+    public int getHora() {
+        return hora;
     }
 
-    public LocalDateTime getFechaHora() {
-        return fechaHora;
+    public int getDuracion() {
+        return duracion;
     }
 
-    public void setFechaHora(LocalDateTime fechaHora) {
-        this.fechaHora = fechaHora;
-    }
+    public double calcularPrecioTotal() {
+        double precioBase = cancha.getPrecioPorHora() * duracion;
+        double descuento = usuario.getDescuento();
+        double precioFinal = precioBase * (1 - descuento);
 
-    public int precioPagar(){
-        if(Usuario.isEsSocio()){
-            return 1;
-        }
-        return 0;
+        return precioFinal;
     }
-
-    
 }

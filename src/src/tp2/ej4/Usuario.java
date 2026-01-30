@@ -1,58 +1,53 @@
 package tp2.ej4;
 
+import java.util.ArrayList;
+
 public class Usuario {
     private String nombre;
-    private boolean esSocio;
-    private int id;
-    private String telefono;
-    private String email;
+    private ArrayList<Turno> turnos;
+    
+    private static final int MIN_TURNOS_SOCIO = 4;
+    private static final double DESCUENTO_SOCIO = 0.10;
 
-    public Usuario(String nombre, boolean esSocio, int id, String telefono, String email) {
+    public Usuario(String nombre) {
         this.nombre = nombre;
-        this.esSocio = esSocio;
-        this.id = id;
-        this.telefono = telefono;
-        this.email = email;
+        this.turnos = new ArrayList<>();
     }
-        
+
     public String getNombre() {
         return nombre;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void agregarTurno(Turno turno) {
+        turnos.add(turno);
     }
 
-    public boolean isEsSocio() {
-        return esSocio;
+    public ArrayList<Turno> getTurnos() {
+        return turnos;
     }
 
-    public void setEsSocio(boolean esSocio) {
-        this.esSocio = esSocio;
+    public boolean esSocio() {
+        return contarTurnosRecientes() >= MIN_TURNOS_SOCIO;
     }
 
-    public int getId() {
-        return id;
+    private int contarTurnosRecientes() {
+        // solo la ia sabe como resolver esto, yo ni idea:
+        // LocalDate hace2Meses = LocalDate.now().minusMonths(2);
+        // int contador = 0;
+        // for (Turno t : turnos) {
+        //     if (t.getFecha().isAfter(hace2Meses)) {
+        //         contador++;
+        //     }
+        // }
+        // return contador;
+        return turnos.size();
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public double getDescuento() {
+        if (esSocio()) {
+            return DESCUENTO_SOCIO;
+        } else {
+            return 0.0;
+        }
     }
-
-    public String getTelefono() {
-        return telefono;
-    }
-
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
 }
